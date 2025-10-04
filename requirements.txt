@@ -1,0 +1,14 @@
+moviepy
+ffmpeg-python
+spleeter
+librosa
+pydub
+demucs
+soundfile
+numpy
+scipy
+matplotlib
+customtkinter
+streamlit
+tqdm
+pyyaml

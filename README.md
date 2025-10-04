@@ -44,4 +44,3 @@ Python application to extract audio tracks from video files, isolate background 
 - Phase 4: Enhancement pipeline.
 - Phase 5: User interface and advanced features.
 
-# Audio-Extractor-Emhancer

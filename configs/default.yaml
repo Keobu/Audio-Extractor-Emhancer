@@ -1,0 +1,23 @@
+# Default configuration for the Audio Processing Pipeline
+paths:
+  work_dir: data/output/work
+  output_music: data/output/enhanced_music.wav
+
+pipeline:
+  isolate_vocals: false
+  isolate_music: true
+  enhancement_profile: null
+
+extraction:
+  backend: moviepy  # or ffmpeg
+  target_sample_rate: 44100
+
+separation:
+  engine: spleeter  # options: spleeter, demucs
+  stems: 2
+
+enhancement:
+  equalizer: flat
+  noise_reduction: medium
+  limiter: standard
+
