@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 from .extraction import extract_audio
+from .separation import separate_music_and_vocals
 
 
 @dataclass
@@ -41,10 +43,22 @@ class AudioProcessingPipeline:
         return extract_audio(self.config.input_path, extracted_path)
 
     def separate_sources(self, audio_path: Path) -> Path:
-        """Placeholder for Phase 3: split stems using Spleeter or Demucs."""
+        """Separate audio into stems and return the selected output track."""
 
-        # TODO: implement source separation logic.
-        return self.config.work_dir / "music.wav"
+        separation_dir = self.config.work_dir / "separation"
+        music_path, vocals_path = separate_music_and_vocals(audio_path, separation_dir)
+
+        if self.config.isolate_vocals:
+            target_vocals = self.config.work_dir / "vocals.wav"
+            target_vocals.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(vocals_path, target_vocals)
+
+        if not self.config.isolate_music:
+            return vocals_path
+
+        target_music = self.config.work_dir / "music.wav"
+        shutil.copy2(music_path, target_music)
+        return target_music
 
     def enhance_audio(self, music_path: Path) -> Path:
         """Placeholder for Phase 4: apply EQ, noise reduction, and leveling."""
@@ -56,8 +70,8 @@ class AudioProcessingPipeline:
         """Execute the pipeline end-to-end using the placeholder stages."""
 
         extracted_audio = self.extract_audio()
-        music_track = self.separate_sources(extracted_audio)
-        return self.enhance_audio(music_track)
+        selected_track = self.separate_sources(extracted_audio)
+        return self.enhance_audio(selected_track)
 
 
 __all__ = ["PipelineConfig", "AudioProcessingPipeline"]
