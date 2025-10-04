@@ -2,7 +2,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-import soundfile as sf
+
+sf = pytest.importorskip("soundfile")
 
 from audio_extractor_enhancer.separation import (
     SourceSeparationError,

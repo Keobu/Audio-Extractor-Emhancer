@@ -3,6 +3,8 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+
+pytest.importorskip("moviepy.editor")
 from moviepy.editor import AudioClip, ColorClip
 
 from audio_extractor_enhancer.extraction import (

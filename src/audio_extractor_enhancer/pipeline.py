@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import logging
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from .enhancement import EnhancementSettings, enhance_music
 from .extraction import extract_audio
 from .separation import separate_music_and_vocals
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -24,7 +28,7 @@ class PipelineConfig:
 
 
 class AudioProcessingPipeline:
-    """End-to-end pipeline skeleton for forthcoming audio processing phases."""
+    """End-to-end pipeline combining extraction, separation, and enhancement."""
 
     def __init__(self, config: PipelineConfig) -> None:
         self.config = config
@@ -40,6 +44,7 @@ class AudioProcessingPipeline:
         """Extract the raw audio track from the configured input video."""
 
         extracted_path = self.config.work_dir / "extracted_audio.wav"
+        LOGGER.debug("Extracting audio from %s to %s", self.config.input_path, extracted_path)
         return extract_audio(self.config.input_path, extracted_path)
 
     def separate_sources(self, audio_path: Path) -> Path:
@@ -60,14 +65,29 @@ class AudioProcessingPipeline:
         shutil.copy2(music_path, target_music)
         return target_music
 
-    def enhance_audio(self, music_path: Path) -> Path:
-        """Placeholder for Phase 4: apply EQ, noise reduction, and leveling."""
+    def _resolve_enhancement_settings(self) -> EnhancementSettings:
+        profile = (self.config.enhancement_profile or "default").lower()
 
-        # TODO: implement enhancement with librosa or pydub.
-        return self.config.output_path
+        if profile == "bright":
+            return EnhancementSettings(eq_high_gain_db=4.0, eq_mid_gain_db=-1.0, target_gain_db=1.5)
+        if profile == "warm":
+            return EnhancementSettings(eq_low_gain_db=3.0, eq_high_gain_db=-2.0, noise_reduction=False)
+        if profile == "clean":
+            return EnhancementSettings(eq_low_gain_db=1.0, eq_mid_gain_db=1.5, eq_high_gain_db=1.0, target_gain_db=0.5)
+
+        if profile not in {"default", ""}:
+            LOGGER.warning("Unknown enhancement profile '%s'; using defaults", profile)
+        return EnhancementSettings()
+
+    def enhance_audio(self, music_path: Path) -> Path:
+        """Apply post-processing filters to the chosen music track."""
+
+        settings = self._resolve_enhancement_settings()
+        LOGGER.debug("Enhancing audio %s with profile %s", music_path, self.config.enhancement_profile)
+        return enhance_music(music_path, self.config.output_path, settings)
 
     def run(self) -> Path:
-        """Execute the pipeline end-to-end using the placeholder stages."""
+        """Execute the pipeline end-to-end using the configured stages."""
 
         extracted_audio = self.extract_audio()
         selected_track = self.separate_sources(extracted_audio)
