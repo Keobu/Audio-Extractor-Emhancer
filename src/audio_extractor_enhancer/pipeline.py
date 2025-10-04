@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+from .extraction import extract_audio
+
 
 @dataclass
 class PipelineConfig:
@@ -33,10 +35,10 @@ class AudioProcessingPipeline:
         self.config.output_path.parent.mkdir(parents=True, exist_ok=True)
 
     def extract_audio(self) -> Path:
-        """Placeholder for Phase 2: extract audio from the configured video file."""
+        """Extract the raw audio track from the configured input video."""
 
-        # TODO: implement with moviepy or ffmpeg-python.
-        return self.config.work_dir / "extracted_audio.wav"
+        extracted_path = self.config.work_dir / "extracted_audio.wav"
+        return extract_audio(self.config.input_path, extracted_path)
 
     def separate_sources(self, audio_path: Path) -> Path:
         """Placeholder for Phase 3: split stems using Spleeter or Demucs."""
